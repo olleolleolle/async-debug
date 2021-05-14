@@ -43,7 +43,28 @@
 	<section>
 	<h2>Definitions</h2>
 	
-	<section id="Async::Debug::SITE_ROOT"><h3><code class="language-ruby">SITE_ROOT = File.expand_path(&quot;../..&quot;, __dir__)</code></h3><p>The root directory of the web application files.</p>
+	<section id="Async::Debug.serve"><h3><code class="language-ruby">def self.serve(endpoint: nil)</code></h3><p>Start the debugger.</p>
+<details open>
+	<summary><h4>Signature</h4></summary>
+	<dl><dt>
+					<strong>parameter</strong>　<code class="syntax">endpoint</code>　<code class="language-ruby">Async::IO::Endpoint</code></dt><dd><p>The endpoint to bind to. Defaults to <a href="https://localhost:9090">https://localhost:9090</a>.</p>
+</dd></dl>
+</details>
+<details>
+						<summary><h4>Implementation</h4></summary>
+						<pre><code class="language-ruby">def self.serve(endpoint: nil)
+	endpoint ||= Falcon::Endpoint.parse(&quot;https://localhost:9090&quot;)
+	builder = Rack::Builder.new
+	self.call(builder)
+	app = builder.to_app
+	middleware = Falcon::Server.middleware(app)
+	
+	Async(transient: true, annotation: self) do
+		Console.logger.info(self, &quot;Live debugger binding to #{endpoint}...&quot;)
+		Async::HTTP::Server.new(middleware, endpoint).run
+	end
+end</code></pre>
+					</details></section><section id="Async::Debug::SITE_ROOT"><h3><code class="language-ruby">SITE_ROOT = File.expand_path(&quot;../..&quot;, __dir__)</code></h3><p>The root directory of the web application files.</p>
 </section><section id="Async::Debug::PAGES_ROOT"><h3><code class="language-ruby">PAGES_ROOT = File.expand_path(&quot;pages&quot;, SITE_ROOT)</code></h3><p>The root directory for the utopia middleware.</p>
 </section><section id="Async::Debug::PUBLIC_ROOT"><h3><code class="language-ruby">PUBLIC_ROOT = File.expand_path(&quot;public&quot;, SITE_ROOT)</code></h3><p>The root directory for static assets.</p>
 </section><section id="Async::Debug.call"><h3><code class="language-ruby">def self.call(builder, root = Dir.pwd, locales: nil, utopia: Utopia.setup)</code></h3><p>Appends a project application to the rack builder.</p>
